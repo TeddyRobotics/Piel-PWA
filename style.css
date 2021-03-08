@@ -61,3 +61,34 @@ li {
   justify-content: space-evenly;
   padding: 2rem 0;
 }
+
+.custom-input {
+  color: transparent;
+}
+
+.custom-input::-webkit-file-upload-button {
+  visibility: hidden;
+}
+
+.custom-input::before {
+  content: "Update Firmware";
+  color: black;
+  display: inline-block;
+  background: linear-gradient(top, #f9f9f9, #e3e3e3);
+  border: 1px solid #999;
+  padding: 5px 8px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  text-shadow: 1px 1px #fff;
+  font-weight: 700;
+  font-size: 10pt;
+}
+
+.custom-input:hover::before {
+  border-color: black;
+}
+
+.custom-input:active::before {
+  background: -webkit-linear-gradient(top, #f9f9f9, #e3e3e3);
+}
