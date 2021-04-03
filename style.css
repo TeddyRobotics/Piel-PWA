@@ -20,25 +20,15 @@ nav {
   height: 10vh;
   background: rgb(154, 248, 248);
 }
-/* nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-} */
-
-/* ul {
-  list-style: none;
-  display: flex;
-} */
 
 ul {
   display: flex;
   list-style: none;
-  width: 50%;
+  /* width: 50%; */
   height: 100%;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
-  margin-left: 350px;
+  /* margin-left: 350px; */
 }
 
 li {
@@ -123,4 +113,69 @@ li {
 
 .custom-input:active::before {
   background: -webkit-linear-gradient(top, #f9f9f9, #e3e3e3);
+}
+
+@media (max-width: 500px) {
+  ul {
+    height: 100%;
+    /* margin-left: 50px; */
+  }
+
+  li {
+    text-decoration: none;
+    font-size: 1.5rem;
+  }
+
+  /* .container {
+    display: block;
+    width: 130px;
+    margin: auto;
+    margin-top: 100px;
+  } */
+
+  .container {
+    display: grid;
+    width: 130px;
+    margin: auto;
+    margin-top: 100px;
+    grid-template-columns: 150px;
+    grid-row-gap: 20px;
+    grid-column-gap: 20px;
+    grid-template-areas:
+      "connect"
+      "update"
+      "ours";
+    justify-content: center;
+  }
+
+  button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .connect {
+    width: 130px;
+    height: 26px;
+    padding: 25px;
+  }
+
+  .input-two {
+    width: 130px;
+    height: 26px;
+    padding: 25px;
+  }
+
+  .custom-input::before {
+    content: "Update Firmware";
+    color: black;
+    display: flex;
+
+    border: 1px solid #999;
+    padding: 5px 8px;
+    width: 110px;
+    text-shadow: 1px 1px #fff;
+    font-weight: 700;
+    font-size: 10pt;
+  }
 }
