@@ -1,12 +1,47 @@
 var myCharacteristic;
 
+class BLEConnection
+{
+  constructor(characteristic)
+  {
+    this.characteristic = characteristic;
+    console.log("characteristic: " + this.characteristic.toString());
+  }
+
+  send(data)
+  {
+    this.characteristic.writeValue(data);
+  }
+}
+
+/* UART Serivce: 6E400001-B5A3-F393-E0A9-E50E24DCCA9E
+ * UART RXD    : 6E400002-B5A3-F393-E0A9-E50E24DCCA9E
+ * UART TXD    : 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
+ * source: https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/src/services/BLEUart.cpp
+ */
+
+var bleConnection;
+
 function onButtonClick() {
+  // source: https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/src/services/BLEUart.cpp
+  const UART = {
+    SERVICE: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase(),
+    RXD: "6E400002-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase(),
+    TXD: "6E400003-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase(),
+  };
+  const service = "00001801-0000-1000-8000-00805f9b34fb";
+  const SOFTWARE_UPDATE_SERVICE = "00001530-1212-efde-1523-785feabcd123";
 
   let options = {};
 
-  options.filters = [{namePrefix: "Piël"}];
+  options.filters = [
+    {namePrefix: "Piël"}
+  ];
 
-  options.optionalServices = ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"]
+  // options.optionalServices = ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"]
+  options.optionalServices = [UART.SERVICE];
+  // options.optionalServices = [SOFTWARE_UPDATE_SERVICE]
+  // options.optionalServices = [0x180D, 0x0001, UART.SERVICE];
 
   console.log('Requesting Bluetooth Device...');
   console.log('with ' + JSON.stringify(options));
@@ -19,7 +54,8 @@ function onButtonClick() {
   })
   .then(server => {
     // UART service
-    return server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+    // return server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+    return server.getPrimaryService(UART.SERVICE);
   })
   .then(service => {
     return service.getCharacteristics();
@@ -27,19 +63,24 @@ function onButtonClick() {
   .then(characteristics => {
     let queue = Promise.resolve();
     characteristics.forEach(characteristic => {
+      console.log(characteristic);
       switch (characteristic.uuid) {
-        // RX characteristic
-        case BluetoothUUID.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e'):
+        // TX characteristic
+        // case BluetoothUUID.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e'):
+        case BluetoothUUID.getCharacteristic(UART.TXD):
           queue = queue.then(_ => characteristic.startNotifications()).then(value => {
             console.log('> Notifications started');
             characteristic.addEventListener('characteristicvaluechanged',
             handleNotifications);
           });
           break;
-        // TX characteristic
-        case BluetoothUUID.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e'):
-          queue = queue.then(_ => myCharacteristic = characteristic);
+        
+        // RX characteristic
+        // case BluetoothUUID.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e'):
+        case BluetoothUUID.getCharacteristic(UART.RXD):
+          queue = queue.then(_ => bleConnection = new BLEConnection(characteristic));
           break;
+
         default: console.log('> Unknown Characteristic: ' + characteristic.uuid);
       }
     });
@@ -49,40 +90,23 @@ function onButtonClick() {
   });
 }
 
-// this function is an example of how the original desktop app sends info through bluetooth
-function send(direction, leftTries) {
-  if (!myCharacteristic) {
-      return;
+function handleNotifications(event) {
+  let value = event.target.value;
+  let decoder = new TextDecoder('utf-8');
+  let a = [];
+  // Convert raw data bytes to hex values just for the sake of showing something.
+  // In the "real" world, you'd use data.getUint8, data.getUint16 or even
+  // TextDecoder to process raw data bytes.
+  for (let i = 0; i < value.byteLength; i++) {
+    a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
   }
-  let encoder = new TextEncoder('utf-8');
-  if (direction == "stop") {
-      console.log("stop");
-      let sendMsg = encoder.encode("stop");
-      myCharacteristic.writeValue(sendMsg);
-  }
-  if (direction == "forward") {
-      console.log("forward");
-      let sendMsg = encoder.encode("forward");
-      myCharacteristic.writeValue(sendMsg);
-  }
-  if (direction == "back") {
-      console.log("back");
-      let sendMsg = encoder.encode("back");
-      myCharacteristic.writeValue(sendMsg);
-  }
-  if (direction == "left") {
-      console.log("left");
-      let sendMsg = encoder.encode("left");
-      myCharacteristic.writeValue(sendMsg);
-  }
-  if (direction == "right") {
-      console.log("right");
-      let sendMsg = encoder.encode("right");
-      myCharacteristic.writeValue(sendMsg);
-  }
-  if (direction == "battery") {
-      console.log("battery");
-      let sendMsg = encoder.encode("battery");
-      myCharacteristic.writeValue(sendMsg);
-  }
+  // document.getElementById("battery_label").innerHTML = decoder.decode(value);
+  // console.log('> ' + a.join(' '));
+  let msg = decoder.decode(value);
+  console.log(msg);
+}
+
+function send(data)
+{
+  bleConnection.send(data);
 }
