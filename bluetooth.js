@@ -24,24 +24,19 @@ var bleConnection;
 
 function onButtonClick() {
   // source: https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/src/services/BLEUart.cpp
-  const UART = {
-    SERVICE: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase(),
-    RXD: "6E400002-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase(),
-    TXD: "6E400003-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase(),
+  const DFU_SERVICE = {
+    UUID: "00001530-1212-efde-1523-785feabcd123",
+    DFU_CONTROL_POINT: "00001531-1212-efde-1523-785feabcd123",
+    DFU_PACKET: "00001532-1212-efde-1523-785feabcd123",
+    DFU_VERSION: "00001534-1212-efde-1523-785feabcd123"
   };
-  const service = "00001801-0000-1000-8000-00805f9b34fb";
-  const SOFTWARE_UPDATE_SERVICE = "00001530-1212-efde-1523-785feabcd123";
 
   let options = {};
-
   options.filters = [
-    {namePrefix: "Piël"}
+    {namePrefix: "Piël"},
+    {services: [DFU_SERVICE.UUID]}
   ];
-
-  // options.optionalServices = ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"]
-  options.optionalServices = [UART.SERVICE];
-  // options.optionalServices = [SOFTWARE_UPDATE_SERVICE]
-  // options.optionalServices = [0x180D, 0x0001, UART.SERVICE];
+  options.optionalServices = [DFU_SERVICE.UUID];
 
   console.log('Requesting Bluetooth Device...');
   console.log('with ' + JSON.stringify(options));
@@ -55,32 +50,37 @@ function onButtonClick() {
   .then(server => {
     // UART service
     // return server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
-    return server.getPrimaryService(UART.SERVICE);
+    return server.getPrimaryService(DFU_SERVICE.UUID);
   })
   .then(service => {
     return service.getCharacteristics();
   })
   .then(characteristics => {
-    let queue = Promise.resolve();
+    // let queue = Promise.resolve();
     characteristics.forEach(characteristic => {
       console.log(characteristic);
       switch (characteristic.uuid) {
-        // TX characteristic
-        // case BluetoothUUID.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e'):
-        case BluetoothUUID.getCharacteristic(UART.TXD):
-          queue = queue.then(_ => characteristic.startNotifications()).then(value => {
-            console.log('> Notifications started');
-            characteristic.addEventListener('characteristicvaluechanged',
-            handleNotifications);
-          });
-          break;
+      //   // TX characteristic
+      //   // case BluetoothUUID.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e'):
+      //   case BluetoothUUID.getCharacteristic(UART.TXD):
+      //     queue = queue.then(_ => characteristic.startNotifications()).then(value => {
+      //       console.log('> Notifications started');
+      //       characteristic.addEventListener('characteristicvaluechanged',
+      //       handleNotifications);
+      //     });
+      //     break;
         
-        // RX characteristic
-        // case BluetoothUUID.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e'):
-        case BluetoothUUID.getCharacteristic(UART.RXD):
-          queue = queue.then(_ => bleConnection = new BLEConnection(characteristic));
-          break;
-
+      //   // RX characteristic
+      //   // case BluetoothUUID.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e'):
+      //   case BluetoothUUID.getCharacteristic(UART.RXD):
+      //     queue = queue.then(_ => bleConnection = new BLEConnection(characteristic));
+      //     break;
+        case BluetoothUUID.getCharacteristic(DFU_SERVICE.DFU_VERSION):
+          queue = queue.then(_ => characteristic.startNotifications()).then(value => {
+            console.log("Notification started");
+            characteristic.addEventListener('characteristicvaluechanged',
+                                            handleNotifications);
+          });
         default: console.log('> Unknown Characteristic: ' + characteristic.uuid);
       }
     });
