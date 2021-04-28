@@ -25,10 +25,11 @@ var bleConnection;
 function onButtonClick() {
   // source: https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/src/services/BLEUart.cpp
   const DFU_SERVICE = {
-    UUID: "0xFE59",
-    DFU_CONTROL_POINT: "0x8EC90001-F315-4F60-9FB8-838830DAEA50",
-    DFU_PACKET: "0x8EC90002-F315-4F60-9FB8-838830DAEA50",
-    //DFU_VERSION: "00001534-1212-efde-1523-785feabcd123"
+    
+    UUID: "00001530-1212-efde-1523-785feabcd123",
+    DFU_CONTROL_POINT: "00001531-1212-efde-1523-785feabcd123",
+    DFU_PACKET: "00001532-1212-efde-1523-785feabcd123",
+    
   };
 
   /*
