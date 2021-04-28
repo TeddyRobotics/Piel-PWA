@@ -6,7 +6,7 @@ function onButtonClick() {
   
     options.filters = [{namePrefix: "Piël"}];
   
-    options.optionalServices = ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"]
+    options.optionalServices = ["00001530-1212-efde-1523-785feabcd123"]
   
     console.log('Requesting Bluetooth Device...');
     console.log('with ' + JSON.stringify(options));
@@ -19,7 +19,7 @@ function onButtonClick() {
     })
     .then(server => {
       // UART service
-      return server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+      return server.getPrimaryService("00001530-1212-efde-1523-785feabcd123");
     })
     .then(service => {
       return service.getCharacteristics();
@@ -29,7 +29,7 @@ function onButtonClick() {
       characteristics.forEach(characteristic => {
         switch (characteristic.uuid) {
           // RX characteristic
-          case BluetoothUUID.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e'):
+          case BluetoothUUID.getCharacteristic('00001534-1212-efde-1523-785feabcd123'):
             queue = queue.then(_ => characteristic.startNotifications()).then(value => {
               console.log('> Notifications started');
               characteristic.addEventListener('characteristicvaluechanged',
@@ -37,7 +37,7 @@ function onButtonClick() {
             });
             break;
           // TX characteristic
-          case BluetoothUUID.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e'):
+          case BluetoothUUID.getCharacteristic('00001531-1212-efde-1523-785feabcd123'):
             queue = queue.then(_ => myCharacteristic = characteristic);
             break;
           default: console.log('> Unknown Characteristic: ' + characteristic.uuid);
